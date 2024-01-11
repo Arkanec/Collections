@@ -8,14 +8,16 @@ import ru.skypro.collections.model.Employee;
 import ru.skypro.collections.service.EmployeeService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final int STORAGE_SIZE = 5;
 
-    private final List<Employee> employees = new ArrayList<>();
+    private final Map<String, Employee> employees = new HashMap<>();
 
 
 
@@ -25,39 +27,39 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeStorageIsFullException("Невозможно добавить сотрудника. Хранилище полное.");
             }
         Employee employee = new Employee(firstName, lastName);
-        if (employees.contains(employee)) {
+        if (employees.containsKey(employee.getFullName())) {
             throw new EmployeeAlreadyAddedException("Такой сотрудник уже есть");
         }
 
 
-        employees.add(employee);
+        employees.put(employee.getFullName(), employee);
         return employee;
     }
 
     @Override
     public Employee remove(String firstName, String lastName) {
         Employee employee = new Employee(firstName, lastName);
-        if (!employees.contains(employee)) {
+        if (!employees.containsKey(employee.getFullName())) {
             throw new EmployeeNotFoundException("Сотрудник с таким именем и фамилией не найден");
         }
 
-        employees.remove(employee);
+        employees.remove(employee.getFullName());
         return employee;
     }
 
     @Override
     public Employee find(String firstName, String lastName) {
         Employee requetedEmployee = new Employee(firstName, lastName);
-        for (Employee employee : employees) {
-            if(employee.equals(requetedEmployee)) {
-                return requetedEmployee;
-            }
+
+        Employee employeeFromMap = employees.get(requetedEmployee.getFullName());
+         if (employeeFromMap == null) {
+             throw new EmployeeNotFoundException("Сотрудник с таким именем и фамилией не найден");
         }
-        throw new EmployeeNotFoundException("Сотрудник с таким именем и фамилией не найден");
+        return employeeFromMap;
     }
 
     @Override
-    public List<Employee> getAll() {
-        return new ArrayList<>(employees);
+    public Map<String, Employee>  getAll() {
+        return new HashMap<>(employees);
     }
 }
